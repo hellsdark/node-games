@@ -185,6 +185,7 @@ function win() {
     return 0;
 }
 
-http.listen(3001, function () {
-    console.log('4connect listening on *:3001');
+let port = process.argv[2] || 3006;
+http.listen(port, function () {
+    console.log('4connect listening on *:' + port);
 });

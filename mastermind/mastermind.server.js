@@ -161,5 +161,5 @@ function win(combination, player) {
     }
 }
 
-let port = 3005;
+let port =  process.argv[2] || 3005;
 http.listen(port, () => console.log('mastermind server listening on *:' + port));

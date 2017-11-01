@@ -7,46 +7,45 @@ var cellWidth = 40;
 var canvasWidth = 280;
 var canvasHeight = 360;
 var strokeWidth = 1;
-var radius = cellWidth/2-strokeWidth;
+var radius = cellWidth / 2 - strokeWidth;
 var gameover = false;
 
-socket.on('forbidden', function(data){
-    if (data == 'wrong_move')
-    {
+// websocket events
+
+socket.on('forbidden', function (data) {
+    if (data == 'wrong_move') {
         $('#info').html('Vous ne pouvez pas jouer ici')
     }
-    else if (data == 'no_place_available')
-    {
+    else if (data == 'no_place_available') {
         $('.game').html('<h2>Désolé, le serveur est plein.</h2>');
     }
 });
 
-socket.on('status', function(state){
+socket.on('status', function (state) {
     console.log(state);
-    if (state == 'ready'){
-        $('#boardCanvas').css('visibility','visible');
+    if (state == 'ready') {
+        $('#boardCanvas').css('visibility', 'visible');
     }
-    if (state == 'not-ready'){
-        $('#boardCanvas').css('visibility','hidden');
+    if (state == 'not-ready') {
+        $('#boardCanvas').css('visibility', 'hidden');
         $('#info').html("En attente de joueurs");
     }
 });
 
-socket.on('number', function(num){
+socket.on('number', function (num) {
     $('#playerNumber').html(num);
     number = num;
 });
 
-socket.on('gameover', function(num){
-    $('#info').html('Le joueur '+num+' a gagné !');
+socket.on('gameover', function (num) {
+    $('#info').html('Le joueur ' + num + ' a gagné !');
     $('#info').effect('pulsate');
     gameover = true;
 });
 
-socket.on('board', function(data){
+socket.on('board', function (data) {
     player = data.player;
-    if (data.player == number)
-    {
+    if (data.player == number) {
         $('#info').html("A vous de jouer");
     }
     else {
@@ -56,37 +55,28 @@ socket.on('board', function(data){
     gameover = false;
 });
 
-function drawBoard(board){
-    ctx.clearRect(0,cellWidth,canvasWidth,canvasHeight-cellWidth);
+// canvas drawing
 
-    // draw lines
-    for (var i=0;i<8;i++)
-    {
-        ctx.beginPath();
-        ctx.moveTo(i*cellWidth, canvasHeight);
-        ctx.lineTo(i*cellWidth, canvasHeight-7*cellWidth);
-        ctx.stroke();
+function drawBoard(board) {
+    ctx.clearRect(0, cellWidth, canvasWidth, canvasHeight - cellWidth);
 
-        ctx.beginPath();
-        ctx.moveTo(0, canvasHeight-i*cellWidth);
-        ctx.lineTo(canvasWidth, canvasHeight-i*cellWidth);
-        ctx.stroke();
-    }
+    drawLines(board);
+    drawCoins(board);
+}
 
+function drawCoins(board) {
     // draw coins
-    for (var i=0;i<7;i++)
-    {
-        for (var j=0;j<7;j++)
-        {
-            if (board[i][j]!=0){
-                if (board[i][j]==1){
+    for (let i of [...Array(7).keys()]) {
+        for (let j of [...Array(7).keys()]) {
+            if (board[i][j] != 0) {
+                if (board[i][j] == 1) {
                     ctx.fillStyle = "yellow";
                 }
-                else if (board[i][j]==2){
+                else if (board[i][j] == 2) {
                     ctx.fillStyle = "red";
                 }
                 ctx.beginPath();
-                ctx.arc(i*cellWidth+cellWidth/2, (canvasHeight-j*cellWidth)-cellWidth/2, radius, 0, 2 * Math.PI, false);
+                ctx.arc(i * cellWidth + cellWidth / 2, (canvasHeight - j * cellWidth) - cellWidth / 2, radius, 0, 2 * Math.PI, false);
                 ctx.fill();
                 ctx.lineWidth = strokeWidth;
                 ctx.strokeStyle = '#003300';
@@ -96,29 +86,42 @@ function drawBoard(board){
     }
 }
 
-$("#boardCanvas").mousemove(function(e){
-    var parentOffset = $(this).offset(); 
-
-    //or $(this).offset(); if you really just want the current element's offset
-    var relX = e.pageX - parentOffset.left;
-
-    ctx.clearRect(0,0,canvasWidth,cellWidth);
-
-    if (player == number && !gameover)
-    {
+function drawLines(board) {
+    // draw lines
+    for (let i of [...Array(8).keys()]) {
+        ctx.beginPath();
+        ctx.moveTo(i * cellWidth, canvasHeight);
+        ctx.lineTo(i * cellWidth, canvasHeight - 7 * cellWidth);
+        ctx.stroke();
 
         ctx.beginPath();
-        if (number == 1)
-        {
+        ctx.moveTo(0, canvasHeight - i * cellWidth);
+        ctx.lineTo(canvasWidth, canvasHeight - i * cellWidth);
+        ctx.stroke();
+    }
+}
+
+// webapp events
+
+$("#boardCanvas").mousemove(function (e) {
+    var parentOffset = $(this).offset();
+
+    var relX = e.pageX - parentOffset.left;
+
+    ctx.clearRect(0, 0, canvasWidth, cellWidth);
+
+    if (player == number && !gameover) {
+
+        ctx.beginPath();
+        if (number == 1) {
             ctx.fillStyle = "yellow";
         }
-        else if (number == 2)
-        {
+        else if (number == 2) {
             ctx.fillStyle = "red";
         }
 
-        var positionX = Math.floor(relX/cellWidth) * cellWidth+cellWidth/2;
-        ctx.arc(positionX, cellWidth/2, radius, 0, 2 * Math.PI, false);
+        var positionX = Math.floor(relX / cellWidth) * cellWidth + cellWidth / 2;
+        ctx.arc(positionX, cellWidth / 2, radius, 0, 2 * Math.PI, false);
         ctx.fill();
         ctx.lineWidth = strokeWidth;
         ctx.strokeStyle = '#003300';
@@ -126,16 +129,14 @@ $("#boardCanvas").mousemove(function(e){
     }
 });
 
-$("#boardCanvas").click(function(e){
-    if (player == number && !gameover)
-    {
-        var parentOffset = $(this).offset(); 
+$("#boardCanvas").click(function (e) {
+    if (player == number && !gameover) {
+        var parentOffset = $(this).offset();
 
-        //or $(this).offset(); if you really just want the current element's offset
         var relX = e.pageX - parentOffset.left;
-        var position = Math.floor(relX/cellWidth)+1;
+        var position = Math.floor(relX / cellWidth) + 1;
         socket.emit('play', position);
-        ctx.clearRect(0,0,canvasWidth,cellWidth);
+        ctx.clearRect(0, 0, canvasWidth, cellWidth);
         return false;
     }
 });
