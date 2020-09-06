@@ -117,6 +117,10 @@ function resetBoard() {
 moveEnabled = (x) => x > 0 && x <= 7 && colHeights[x - 1] < 7;
 
 function win() {
+  return checkXAndYAxes() || checkDiagonals() || 0;
+}
+
+function checkXAndYAxes() {
   var currentPlayerHori = 0;
   var currentPlayerVerti = 0;
   var cumulVerti = 0;
@@ -152,7 +156,9 @@ function win() {
     currentPlayerVerti = 0;
     currentPlayerHori = 0;
   }
+}
 
+function checkDiagonals() {
   var currentPlayerDiag1 = 0;
   var currentPlayerDiag2 = 0;
   var cumulDiag1 = 0;
@@ -191,8 +197,6 @@ function win() {
       currentPlayerDiag2 = 0;
     }
   }
-
-  return 0;
 }
 
 let port = process.argv[2] || 3006;
